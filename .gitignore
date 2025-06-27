@@ -1,4 +1,6 @@
 logs/*
+kubectl
+kubectl.sha256
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
