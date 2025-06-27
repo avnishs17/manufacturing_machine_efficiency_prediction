@@ -14,6 +14,6 @@ spec:
     spec:
       containers:
       - name: machine
-        image: 
+        image: avnishsingh17/gitops-project:latest
         ports:
         - containerPort: 5000
