@@ -43,7 +43,7 @@ pipeline {
                 '''
             }
         }
-        stage('Apply Kubernetes & Sync App with ArgoCD') {
+        stage('Apply Kubernetes & Sync App with ArgoCD trigger check') {
             steps {
                 script {
                     kubeconfig(credentialsId: 'kubeconfig', serverUrl: "${KUBE_SERVER_URL}") {
