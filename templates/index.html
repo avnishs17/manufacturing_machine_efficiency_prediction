@@ -1,25 +1,515 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width , initial-scale=1.0">
-        <link rel="stylesheet" href="static/style.css">
-        <title>Smart Manufacturing Machines Efficiency Prediction</title> 
-    </head>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <title>Manufacturing Machine Efficiency Predictor</title>
+</head>
 
-    <body>
-        <h1>Smart Manufacturing Machines Efficiency Prediction</h1>
-        <form method="post">
-            {% for feature in features %}
-                <label for="{{ feature }}"> {{ feature }} :</label>
-                <input type="text" name="{{ feature }}" required><br>
-            {% endfor %}
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="header-content">
+                <i class="fas fa-industry header-icon"></i>
+                <h1>Manufacturing Machine Efficiency Predictor</h1>
+                <p class="subtitle">Advanced ML-powered prediction system for industrial machinery performance</p>
+            </div>
+        </header>
 
-            <button type="submit">PREDICT</button>
-        </form>
+        <div class="main-layout">
+            <!-- Form Section -->
+            <div class="form-section">
+                <div class="form-container">
+                    <div class="form-header">
+                        <h2><i class="fas fa-cogs"></i> Machine Parameters</h2>
+                        <p>Enter the current machine parameters to predict efficiency status</p>
+                    </div>
 
-        {% if prediction %}
-            <h2>Prediction : {{ prediction }}</h2>
-        {% endif %}
-    </body>
+                    <form id="predictionForm" novalidate>
+                        <!-- Operation Mode - Full Width -->
+                        <div class="input-section">
+                            <h3><i class="fas fa-play-circle"></i> Operation Settings</h3>
+                            <div class="input-row">
+                                <div class="input-group full-width">
+                                    <label for="Operation_Mode" class="input-label">
+                                        <span class="label-text">{{ feature_info['Operation_Mode'].description }}</span>
+                                        <i class="fas fa-info-circle info-icon" 
+                                           title="Select the current operating mode of the machine"></i>
+                                    </label>
+                                    <select name="Operation_Mode" id="Operation_Mode" class="input-field select-field" required>
+                                        <option value="">{{ feature_info['Operation_Mode'].placeholder }}</option>
+                                        {% for value, display in feature_info['Operation_Mode'].options %}
+                                        <option value="{{ value }}">{{ display }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Environmental Parameters -->
+                        <div class="input-section">
+                            <h3><i class="fas fa-thermometer-half"></i> Environmental Parameters</h3>
+                            <div class="input-row">
+                                <div class="input-group">
+                                    <label for="Temperature_C" class="input-label">
+                                        <span class="label-text">{{ feature_info['Temperature_C'].description }}</span>
+                                        <span class="unit">({{ feature_info['Temperature_C'].unit }})</span>
+                                        <i class="fas fa-info-circle info-icon" 
+                                           title="Range: {{ feature_info['Temperature_C'].min }} - {{ feature_info['Temperature_C'].max }} {{ feature_info['Temperature_C'].unit }}"></i>
+                                    </label>
+                                    <input type="number" name="Temperature_C" id="Temperature_C" class="input-field"
+                                           min="{{ feature_info['Temperature_C'].min }}" max="{{ feature_info['Temperature_C'].max }}"
+                                           step="{{ feature_info['Temperature_C'].step }}" placeholder="{{ feature_info['Temperature_C'].placeholder }}" required>
+                                    <div class="input-info">Range: {{ feature_info['Temperature_C'].min }} - {{ feature_info['Temperature_C'].max }} {{ feature_info['Temperature_C'].unit }}</div>
+                                </div>
+                                
+                                <div class="input-group">
+                                    <label for="Vibration_Hz" class="input-label">
+                                        <span class="label-text">{{ feature_info['Vibration_Hz'].description }}</span>
+                                        <span class="unit">({{ feature_info['Vibration_Hz'].unit }})</span>
+                                        <i class="fas fa-info-circle info-icon" 
+                                           title="Range: {{ feature_info['Vibration_Hz'].min }} - {{ feature_info['Vibration_Hz'].max }} {{ feature_info['Vibration_Hz'].unit }}"></i>
+                                    </label>
+                                    <input type="number" name="Vibration_Hz" id="Vibration_Hz" class="input-field"
+                                           min="{{ feature_info['Vibration_Hz'].min }}" max="{{ feature_info['Vibration_Hz'].max }}"
+                                           step="{{ feature_info['Vibration_Hz'].step }}" placeholder="{{ feature_info['Vibration_Hz'].placeholder }}" required>
+                                    <div class="input-info">Range: {{ feature_info['Vibration_Hz'].min }} - {{ feature_info['Vibration_Hz'].max }} {{ feature_info['Vibration_Hz'].unit }}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Power and Performance -->
+                        <div class="input-section">
+                            <h3><i class="fas fa-bolt"></i> Power & Performance</h3>
+                            <div class="input-row">
+                                <div class="input-group">
+                                    <label for="Power_Consumption_kW" class="input-label">
+                                        <span class="label-text">{{ feature_info['Power_Consumption_kW'].description }}</span>
+                                        <span class="unit">({{ feature_info['Power_Consumption_kW'].unit }})</span>
+                                        <i class="fas fa-info-circle info-icon" 
+                                           title="Range: {{ feature_info['Power_Consumption_kW'].min }} - {{ feature_info['Power_Consumption_kW'].max }} {{ feature_info['Power_Consumption_kW'].unit }}"></i>
+                                    </label>
+                                    <input type="number" name="Power_Consumption_kW" id="Power_Consumption_kW" class="input-field"
+                                           min="{{ feature_info['Power_Consumption_kW'].min }}" max="{{ feature_info['Power_Consumption_kW'].max }}"
+                                           step="{{ feature_info['Power_Consumption_kW'].step }}" placeholder="{{ feature_info['Power_Consumption_kW'].placeholder }}" required>
+                                    <div class="input-info">Range: {{ feature_info['Power_Consumption_kW'].min }} - {{ feature_info['Power_Consumption_kW'].max }} {{ feature_info['Power_Consumption_kW'].unit }}</div>
+                                </div>
+                                
+                                <div class="input-group">
+                                    <label for="Production_Speed_units_per_hr" class="input-label">
+                                        <span class="label-text">{{ feature_info['Production_Speed_units_per_hr'].description }}</span>
+                                        <span class="unit">({{ feature_info['Production_Speed_units_per_hr'].unit }})</span>
+                                        <i class="fas fa-info-circle info-icon" 
+                                           title="Range: {{ feature_info['Production_Speed_units_per_hr'].min }} - {{ feature_info['Production_Speed_units_per_hr'].max }} {{ feature_info['Production_Speed_units_per_hr'].unit }}"></i>
+                                    </label>
+                                    <input type="number" name="Production_Speed_units_per_hr" id="Production_Speed_units_per_hr" class="input-field"
+                                           min="{{ feature_info['Production_Speed_units_per_hr'].min }}" max="{{ feature_info['Production_Speed_units_per_hr'].max }}"
+                                           step="{{ feature_info['Production_Speed_units_per_hr'].step }}" placeholder="{{ feature_info['Production_Speed_units_per_hr'].placeholder }}" required>
+                                    <div class="input-info">Range: {{ feature_info['Production_Speed_units_per_hr'].min }} - {{ feature_info['Production_Speed_units_per_hr'].max }} {{ feature_info['Production_Speed_units_per_hr'].unit }}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Network Parameters -->
+                        <div class="input-section">
+                            <h3><i class="fas fa-network-wired"></i> Network Parameters</h3>
+                            <div class="input-row">
+                                <div class="input-group">
+                                    <label for="Network_Latency_ms" class="input-label">
+                                        <span class="label-text">{{ feature_info['Network_Latency_ms'].description }}</span>
+                                        <span class="unit">({{ feature_info['Network_Latency_ms'].unit }})</span>
+                                        <i class="fas fa-info-circle info-icon" 
+                                           title="Range: {{ feature_info['Network_Latency_ms'].min }} - {{ feature_info['Network_Latency_ms'].max }} {{ feature_info['Network_Latency_ms'].unit }}"></i>
+                                    </label>
+                                    <input type="number" name="Network_Latency_ms" id="Network_Latency_ms" class="input-field"
+                                           min="{{ feature_info['Network_Latency_ms'].min }}" max="{{ feature_info['Network_Latency_ms'].max }}"
+                                           step="{{ feature_info['Network_Latency_ms'].step }}" placeholder="{{ feature_info['Network_Latency_ms'].placeholder }}" required>
+                                    <div class="input-info">Range: {{ feature_info['Network_Latency_ms'].min }} - {{ feature_info['Network_Latency_ms'].max }} {{ feature_info['Network_Latency_ms'].unit }}</div>
+                                </div>
+                                
+                                <div class="input-group">
+                                    <label for="Packet_Loss_%" class="input-label">
+                                        <span class="label-text">{{ feature_info['Packet_Loss_%'].description }}</span>
+                                        <span class="unit">({{ feature_info['Packet_Loss_%'].unit }})</span>
+                                        <i class="fas fa-info-circle info-icon" 
+                                           title="Range: {{ feature_info['Packet_Loss_%'].min }} - {{ feature_info['Packet_Loss_%'].max }} {{ feature_info['Packet_Loss_%'].unit }}"></i>
+                                    </label>
+                                    <input type="number" name="Packet_Loss_%" id="Packet_Loss_%" class="input-field"
+                                           min="{{ feature_info['Packet_Loss_%'].min }}" max="{{ feature_info['Packet_Loss_%'].max }}"
+                                           step="{{ feature_info['Packet_Loss_%'].step }}" placeholder="{{ feature_info['Packet_Loss_%'].placeholder }}" required>
+                                    <div class="input-info">Range: {{ feature_info['Packet_Loss_%'].min }} - {{ feature_info['Packet_Loss_%'].max }} {{ feature_info['Packet_Loss_%'].unit }}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Quality Control -->
+                        <div class="input-section">
+                            <h3><i class="fas fa-check-circle"></i> Quality Control</h3>
+                            <div class="input-row">
+                                <div class="input-group">
+                                    <label for="Quality_Control_Defect_Rate_%" class="input-label">
+                                        <span class="label-text">{{ feature_info['Quality_Control_Defect_Rate_%'].description }}</span>
+                                        <span class="unit">({{ feature_info['Quality_Control_Defect_Rate_%'].unit }})</span>
+                                        <i class="fas fa-info-circle info-icon" 
+                                           title="Range: {{ feature_info['Quality_Control_Defect_Rate_%'].min }} - {{ feature_info['Quality_Control_Defect_Rate_%'].max }} {{ feature_info['Quality_Control_Defect_Rate_%'].unit }}"></i>
+                                    </label>
+                                    <input type="number" name="Quality_Control_Defect_Rate_%" id="Quality_Control_Defect_Rate_%" class="input-field"
+                                           min="{{ feature_info['Quality_Control_Defect_Rate_%'].min }}" max="{{ feature_info['Quality_Control_Defect_Rate_%'].max }}"
+                                           step="{{ feature_info['Quality_Control_Defect_Rate_%'].step }}" placeholder="{{ feature_info['Quality_Control_Defect_Rate_%'].placeholder }}" required>
+                                    <div class="input-info">Range: {{ feature_info['Quality_Control_Defect_Rate_%'].min }} - {{ feature_info['Quality_Control_Defect_Rate_%'].max }} {{ feature_info['Quality_Control_Defect_Rate_%'].unit }}</div>
+                                </div>
+                                
+                                <div class="input-group">
+                                    <label for="Error_Rate_%" class="input-label">
+                                        <span class="label-text">{{ feature_info['Error_Rate_%'].description }}</span>
+                                        <span class="unit">({{ feature_info['Error_Rate_%'].unit }})</span>
+                                        <i class="fas fa-info-circle info-icon" 
+                                           title="Range: {{ feature_info['Error_Rate_%'].min }} - {{ feature_info['Error_Rate_%'].max }} {{ feature_info['Error_Rate_%'].unit }}"></i>
+                                    </label>
+                                    <input type="number" name="Error_Rate_%" id="Error_Rate_%" class="input-field"
+                                           min="{{ feature_info['Error_Rate_%'].min }}" max="{{ feature_info['Error_Rate_%'].max }}"
+                                           step="{{ feature_info['Error_Rate_%'].step }}" placeholder="{{ feature_info['Error_Rate_%'].placeholder }}" required>
+                                    <div class="input-info">Range: {{ feature_info['Error_Rate_%'].min }} - {{ feature_info['Error_Rate_%'].max }} {{ feature_info['Error_Rate_%'].unit }}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Maintenance Score -->
+                        <div class="input-section">
+                            <h3><i class="fas fa-wrench"></i> Maintenance</h3>
+                            <div class="input-row">
+                                <div class="input-group full-width">
+                                    <label for="Predictive_Maintenance_Score" class="input-label">
+                                        <span class="label-text">{{ feature_info['Predictive_Maintenance_Score'].description }}</span>
+                                        <i class="fas fa-info-circle info-icon" 
+                                           title="Range: {{ feature_info['Predictive_Maintenance_Score'].min }} - {{ feature_info['Predictive_Maintenance_Score'].max }} (0 = needs maintenance, 1 = excellent condition)"></i>
+                                    </label>
+                                    <input type="number" name="Predictive_Maintenance_Score" id="Predictive_Maintenance_Score" class="input-field"
+                                           min="{{ feature_info['Predictive_Maintenance_Score'].min }}" max="{{ feature_info['Predictive_Maintenance_Score'].max }}"
+                                           step="{{ feature_info['Predictive_Maintenance_Score'].step }}" placeholder="{{ feature_info['Predictive_Maintenance_Score'].placeholder }}" required>
+                                    <div class="input-info">Range: {{ feature_info['Predictive_Maintenance_Score'].min }} - {{ feature_info['Predictive_Maintenance_Score'].max }} (0 = needs maintenance, 1 = excellent condition)</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Date/Time Parameters -->
+                        <div class="input-section">
+                            <h3><i class="fas fa-calendar-alt"></i> Date & Time</h3>
+                            <div class="input-row">
+                                <div class="input-group">
+                                    <label for="Year" class="input-label">
+                                        <span class="label-text">{{ feature_info['Year'].description }}</span>
+                                        <i class="fas fa-info-circle info-icon" 
+                                           title="Range: {{ feature_info['Year'].min }} - {{ feature_info['Year'].max }}"></i>
+                                    </label>
+                                    <input type="number" name="Year" id="Year" class="input-field"
+                                           min="{{ feature_info['Year'].min }}" max="{{ feature_info['Year'].max }}"
+                                           step="{{ feature_info['Year'].step }}" placeholder="{{ feature_info['Year'].placeholder }}" required>
+                                    <div class="input-info">Range: {{ feature_info['Year'].min }} - {{ feature_info['Year'].max }}</div>
+                                </div>
+                                
+                                <div class="input-group">
+                                    <label for="Month" class="input-label">
+                                        <span class="label-text">{{ feature_info['Month'].description }}</span>
+                                        <i class="fas fa-info-circle info-icon" 
+                                           title="Range: {{ feature_info['Month'].min }} - {{ feature_info['Month'].max }}"></i>
+                                    </label>
+                                    <input type="number" name="Month" id="Month" class="input-field"
+                                           min="{{ feature_info['Month'].min }}" max="{{ feature_info['Month'].max }}"
+                                           step="{{ feature_info['Month'].step }}" placeholder="{{ feature_info['Month'].placeholder }}" required>
+                                    <div class="input-info">Range: {{ feature_info['Month'].min }} - {{ feature_info['Month'].max }}</div>
+                                </div>
+
+                                <div class="input-group">
+                                    <label for="Day" class="input-label">
+                                        <span class="label-text">{{ feature_info['Day'].description }}</span>
+                                        <i class="fas fa-info-circle info-icon" 
+                                           title="Range: {{ feature_info['Day'].min }} - {{ feature_info['Day'].max }}"></i>
+                                    </label>
+                                    <input type="number" name="Day" id="Day" class="input-field"
+                                           min="{{ feature_info['Day'].min }}" max="{{ feature_info['Day'].max }}"
+                                           step="{{ feature_info['Day'].step }}" placeholder="{{ feature_info['Day'].placeholder }}" required>
+                                    <div class="input-info">Range: {{ feature_info['Day'].min }} - {{ feature_info['Day'].max }}</div>
+                                </div>
+
+                                <div class="input-group">
+                                    <label for="Hour" class="input-label">
+                                        <span class="label-text">{{ feature_info['Hour'].description }}</span>
+                                        <i class="fas fa-info-circle info-icon" 
+                                           title="Range: {{ feature_info['Hour'].min }} - {{ feature_info['Hour'].max }}"></i>
+                                    </label>
+                                    <input type="number" name="Hour" id="Hour" class="input-field"
+                                           min="{{ feature_info['Hour'].min }}" max="{{ feature_info['Hour'].max }}"
+                                           step="{{ feature_info['Hour'].step }}" placeholder="{{ feature_info['Hour'].placeholder }}" required>
+                                    <div class="input-info">Range: {{ feature_info['Hour'].min }} - {{ feature_info['Hour'].max }}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit" class="predict-btn">
+                                <i class="fas fa-chart-line"></i>
+                                <span>Predict Efficiency</span>
+                                <div class="loading-spinner" style="display: none;">
+                                    <i class="fas fa-spinner fa-spin"></i>
+                                </div>
+                            </button>
+                            <button type="button" class="reset-btn" onclick="resetForm()">
+                                <i class="fas fa-refresh"></i>
+                                Reset Form
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Results Section -->
+            <div class="results-section">
+                <div class="result-container" id="resultContainer" style="display: none;">
+                    <div class="result-header">
+                        <h2><i class="fas fa-analytics"></i> Prediction Result</h2>
+                    </div>
+                    
+                    <div class="result-card" id="resultCard">
+                        <div class="result-icon" id="resultIcon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <div class="result-content">
+                            <h3 id="resultTitle">Efficiency Status: <span class="prediction-value" id="predictionValue">--</span></h3>
+                            <p class="confidence" id="confidenceText" style="display: none;">Confidence: --</p>
+                            <div class="efficiency-description" id="efficiencyDescription">
+                                <p>Analyzing machine parameters...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Fill Examples -->
+                <div class="examples-container">
+                    <div class="examples-header">
+                        <h3><i class="fas fa-lightbulb"></i> Quick Fill Examples</h3>
+                        <p>Click on any example to auto-fill the form</p>
+                    </div>
+                    
+                    <div class="examples-grid">
+                        <div class="example-card" onclick="fillExample('high')">
+                            <div class="example-header">
+                                <i class="fas fa-arrow-up" style="color: #38a169;"></i>
+                                <h4>High Efficiency</h4>
+                            </div>
+                            <p>Optimal operating conditions</p>
+                        </div>
+                        
+                        <div class="example-card" onclick="fillExample('medium')">
+                            <div class="example-header">
+                                <i class="fas fa-minus" style="color: #d69e2e;"></i>
+                                <h4>Medium Efficiency</h4>
+                            </div>
+                            <p>Average performance</p>
+                        </div>
+                        
+                        <div class="example-card" onclick="fillExample('low')">
+                            <div class="example-header">
+                                <i class="fas fa-arrow-down" style="color: #e53e3e;"></i>
+                                <h4>Low Efficiency</h4>
+                            </div>
+                            <p>Needs attention</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Example data sets
+        const examples = {
+            high: {
+                Operation_Mode: '1',
+                Temperature_C: '65',
+                Vibration_Hz: '1.5',
+                Power_Consumption_kW: '5.0',
+                Network_Latency_ms: '15',
+                Packet_Loss_: '0.5',
+                Quality_Control_Defect_Rate_: '1.0',
+                Production_Speed_units_per_hr: '400',
+                Predictive_Maintenance_Score: '0.9',
+                Error_Rate_: '2.0',
+                Year: '2024',
+                Month: '6',
+                Day: '15',
+                Hour: '10'
+            },
+            medium: {
+                Operation_Mode: '1',
+                Temperature_C: '75',
+                Vibration_Hz: '2.5',
+                Power_Consumption_kW: '7.5',
+                Network_Latency_ms: '25',
+                Packet_Loss_: '2.0',
+                Quality_Control_Defect_Rate_: '4.0',
+                Production_Speed_units_per_hr: '250',
+                Predictive_Maintenance_Score: '0.6',
+                Error_Rate_: '6.0',
+                Year: '2024',
+                Month: '6',
+                Day: '15',
+                Hour: '14'
+            },
+            low: {
+                Operation_Mode: '0',
+                Temperature_C: '85',
+                Vibration_Hz: '4.0',
+                Power_Consumption_kW: '10.0',
+                Network_Latency_ms: '40',
+                Packet_Loss_: '4.0',
+                Quality_Control_Defect_Rate_: '8.0',
+                Production_Speed_units_per_hr: '100',
+                Predictive_Maintenance_Score: '0.3',
+                Error_Rate_: '12.0',
+                Year: '2024',
+                Month: '6',
+                Day: '15',
+                Hour: '18'
+            }
+        };
+
+        function fillExample(type) {
+            const data = examples[type];
+            for (const [key, value] of Object.entries(data)) {
+                const element = document.getElementById(key);
+                if (element) {
+                    element.value = value;
+                }
+            }
+        }
+
+        function resetForm() {
+            document.getElementById('predictionForm').reset();
+            document.getElementById('resultContainer').style.display = 'none';
+        }
+
+        // AJAX form submission
+        document.getElementById('predictionForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const button = document.querySelector('.predict-btn');
+            const spinner = button.querySelector('.loading-spinner');
+            const buttonText = button.querySelector('span');
+            
+            // Show loading state
+            button.disabled = true;
+            spinner.style.display = 'inline-block';
+            buttonText.textContent = 'Analyzing...';
+            
+            try {
+                // Collect form data
+                const formData = new FormData(this);
+                const data = {};
+                for (const [key, value] of formData.entries()) {
+                    data[key] = value;
+                }
+                
+                // Send AJAX request
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                // Display results
+                displayResult(result);
+                
+            } catch (error) {
+                displayResult({
+                    success: false,
+                    error: 'Network error: Please check your connection and try again.'
+                });
+            } finally {
+                // Reset button state
+                button.disabled = false;
+                spinner.style.display = 'none';
+                buttonText.textContent = 'Predict Efficiency';
+            }
+        });
+
+        function displayResult(result) {
+            const resultContainer = document.getElementById('resultContainer');
+            const resultCard = document.getElementById('resultCard');
+            const resultIcon = document.getElementById('resultIcon');
+            const predictionValue = document.getElementById('predictionValue');
+            const confidenceText = document.getElementById('confidenceText');
+            const efficiencyDescription = document.getElementById('efficiencyDescription');
+            
+            resultContainer.style.display = 'block';
+            
+            if (result.success) {
+                // Update prediction value
+                predictionValue.textContent = result.prediction;
+                
+                // Update confidence if available
+                if (result.confidence) {
+                    confidenceText.textContent = `Confidence: ${result.confidence}`;
+                    confidenceText.style.display = 'block';
+                } else {
+                    confidenceText.style.display = 'none';
+                }
+                
+                // Update result card styling and icon based on prediction
+                resultCard.className = 'result-card success efficiency-' + result.prediction.toLowerCase();
+                
+                if (result.prediction === 'High') {
+                    resultIcon.innerHTML = '<i class="fas fa-arrow-up"></i>';
+                    efficiencyDescription.innerHTML = '<p>✅ Excellent performance! The machine is operating at optimal efficiency.</p>';
+                } else if (result.prediction === 'Medium') {
+                    resultIcon.innerHTML = '<i class="fas fa-minus"></i>';
+                    efficiencyDescription.innerHTML = '<p>⚠️ Moderate performance. Consider monitoring for potential improvements.</p>';
+                } else {
+                    resultIcon.innerHTML = '<i class="fas fa-arrow-down"></i>';
+                    efficiencyDescription.innerHTML = '<p>🔴 Low efficiency detected. Maintenance or parameter adjustment recommended.</p>';
+                }
+            } else {
+                // Handle error
+                resultCard.className = 'result-card error';
+                resultIcon.innerHTML = '<i class="fas fa-exclamation-triangle"></i>';
+                predictionValue.textContent = 'Error';
+                confidenceText.style.display = 'none';
+                efficiencyDescription.innerHTML = `<p>${result.error}</p>`;
+            }
+            
+            // Smooth scroll to result
+            resultContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        // Tooltip functionality
+        document.querySelectorAll('.info-icon').forEach(icon => {
+            icon.addEventListener('mouseenter', function(e) {
+                const tooltip = document.createElement('div');
+                tooltip.className = 'tooltip';
+                tooltip.textContent = this.title;
+                document.body.appendChild(tooltip);
+                
+                const rect = this.getBoundingClientRect();
+                tooltip.style.left = rect.left + 'px';
+                tooltip.style.top = (rect.top - tooltip.offsetHeight - 5) + 'px';
+                
+                this.tooltip = tooltip;
+            });
+            
+            icon.addEventListener('mouseleave', function() {
+                if (this.tooltip) {
+                    document.body.removeChild(this.tooltip);
+                    this.tooltip = null;
+                }
+            });
+        });
+    </script>
+</body>
 </html>
