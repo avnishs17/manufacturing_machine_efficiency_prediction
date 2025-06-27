@@ -1,7 +1,7 @@
 logs/*
 kubectl
 kubectl.sha256
-
+setup.md
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
